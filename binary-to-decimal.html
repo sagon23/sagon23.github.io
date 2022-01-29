@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta name="author" content="Bil Mason">
+	<meta charset="utf-8">
+	<title>Binary-to-Decimal in CSS</title>
+<style>
+body {
+	text-align:center;
+	font-family:monospace;
+	font-weight:bold;
+}
+h1 {
+	font-size:2rem;
+	margin:.5rem;
+}
+h2 {
+	font-size:1rem;
+	margin:.5rem;
+}
+#root {
+	position:absolute;
+	display:inline-block;
+	left:50%;
+	transform:translateX(-50%);
+	text-align:center;
+}
+/* binary-to-decimal converter in CSS with NO Javascript */
+#base {
+	border:outset gold 3px;
+	border-radius:10%;
+	outline:3px solid black;
+	display:inline-block;
+	position:absolute;
+	left:50%;
+	transform:translateX(-50%);
+	width:25rem;
+	height:14rem;
+	background:gold;
+}
+/* Each binary digit is represented by an LED that lights up when that column is checked */
+.led {
+	background:radial-gradient(at 30% 30%, white, 15%, DarkGreen);
+	width:1.5rem;
+	height:1.5rem;
+	border:solid black 2px;
+	border-radius:100%;
+	box-shadow:2px 2px 2px DarkGrey;
+	position:absolute;
+	top:5.5rem;
+}
+/* Each binary digit column is labeled with it's decimal value */
+label {
+	position:absolute;
+	height:2rem;
+	width:2rem;
+	text-align:center;
+	font-size:1rem;
+	font-family:sans-serif;
+	top:8rem;
+}
+/* Each binary digit is turned on/off using a checkbox */
+.switch {
+	position:absolute;
+	top:10rem;
+	margin:0px;
+}
+input[type="checkbox"] {
+	appearance:none;
+	-webkit-appearance:none;
+	display:inline-block;
+	background:LightGrey;
+	border-radius:20%;
+	box-shadow:2px 2px 2px DarkGrey;
+	text-align:center;
+	width:2rem;
+	height:2rem;
+}
+input[type="checkbox"]:after {
+	font-size:1.5rem;
+	content:"\2714";
+	color:DarkGrey;
+}
+input[type="checkbox"]:checked:after {
+content:"\2714";
+color:blue;
+}
+input[type="checkbox"]:checked {
+background:LightBlue;
+}
+/* Each LED, binary digit label, and checkbox is grouped into a column.  there are 8 columns [128, 64, 32, 16, 8, 4, 2, 1] . */
+.column80 {
+	left:15%;
+	transform:translateX(-50%);
+}
+.column40 {
+	left:25%;
+	transform:translateX(-50%);
+}
+.column20 {
+	left:35%;
+	transform:translateX(-50%);
+}
+.column10 {
+	left:45%;
+	transform:translateX(-50%);
+}
+.column08 {
+	left:55%;
+	transform:translateX(-50%);
+}
+.column04 {
+	left:65%;
+	transform:translateX(-50%);
+}
+.column02 {
+	left:75%;
+	transform:translateX(-50%);
+}
+.column01 {
+	left:85%;
+	transform:translateX(-50%);
+}
+/* the deciaml area is labled with text rotated 90 degrees */
+#decimal-label {
+	position:absolute;
+	left:-0.5rem;
+	top:2rem;
+	transform: rotate(-90deg);
+}
+/* the binary area is labled with text rotated 90 degrees */
+#binary-label {
+	position:absolute;
+	left:-0.25rem;
+	top:8rem;
+	transform: rotate(-90deg);
+	padding:0;
+	margin:0;
+}
+/* the binary and decimal areas are separated by a dividing line */
+#divider {
+	position:absolute;
+	width:90%;
+	height:2px;
+	background:black;
+	opacity:50%;
+	left:50%;
+	transform:translateX(-50%);
+	top:5rem;
+}
+/* the decimal value is shown in an LCD-like area */
+.dv {
+	position:absolute;
+	width:18rem;
+	height:3rem;
+	line-height:3rem;
+	left:50%;
+	transform:translateX(-50%);
+	top:.5rem;
+	padding:.25rem;
+	text-align:right;
+	font-size:2rem;
+	border:solid black 1px;
+	background:grey;
+	border-radius:5%/5%;
+	border:groove black 3px;
+	box-shadow:2px 2px 2px DarkGrey;
+	display:none;
+}
+
+/* decimal zero is visble by default */
+#dv00 { display:inline-block; }
+
+/* "light up" leds when corresponding binary digit box is checked */
+#bd80-sw:checked ~ #bd80-led { background:radial-gradient(at 30% 30%, white, 30%, GreenYellow); }
+#bd40-sw:checked ~ #bd40-led { background:radial-gradient(at 30% 30%, white, 30%, GreenYellow); }
+#bd20-sw:checked ~ #bd20-led { background:radial-gradient(at 30% 30%, white, 30%, GreenYellow); }
+#bd10-sw:checked ~ #bd10-led { background:radial-gradient(at 30% 30%, white, 30%, GreenYellow); }
+#bd08-sw:checked ~ #bd08-led { background:radial-gradient(at 30% 30%, white, 30%, GreenYellow); }
+#bd04-sw:checked ~ #bd04-led { background:radial-gradient(at 30% 30%, white, 30%, GreenYellow); }
+#bd02-sw:checked ~ #bd02-led { background:radial-gradient(at 30% 30%, white, 30%, GreenYellow); }
+#bd01-sw:checked ~ #bd01-led { background:radial-gradient(at 30% 30%, white, 30%, GreenYellow); }
+
+/* show decimal value according to combination of binary digits selected */
+/*   0 */                                                                                                                                                       ~ #dv00 { display:inline-block }
+/*   1 */                                                                                                                                      #bd01-sw:checked ~ #dv01 { display:inline-block }
+/*   2 */                                                                                                                   #bd02-sw:checked                    ~ #dv02 { display:inline-block }
+/*   3 */                                                                                                                   #bd02-sw:checked ~ #bd01-sw:checked ~ #dv03 { display:inline-block }
+/*   4 */                                                                                                #bd04-sw:checked                                       ~ #dv04 { display:inline-block }
+/*   5 */                                                                                                #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dv05 { display:inline-block }
+/*   6 */                                                                                                #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dv06 { display:inline-block }
+/*   7 */                                                                                                #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv07 { display:inline-block }
+/*   8 */                                                                             #bd08-sw:checked                                                          ~ #dv08 { display:inline-block }
+/*   9 */                                                                             #bd08-sw:checked                                       ~ #bd01-sw:checked ~ #dv09 { display:inline-block }
+/*  10 */                                                                             #bd08-sw:checked                    ~ #bd02-sw:checked                    ~ #dv0a { display:inline-block }
+/*  11 */                                                                             #bd08-sw:checked                    ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv0b { display:inline-block }
+/*  12 */                                                                             #bd08-sw:checked ~ #bd04-sw:checked                                       ~ #dv0c { display:inline-block }
+/*  13 */                                                                             #bd08-sw:checked ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dv0d { display:inline-block }
+/*  14 */                                                                             #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dv0e { display:inline-block }
+/*  15 */                                                                             #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv0f { display:inline-block }
+/*  16 */                                                          #bd10-sw:checked                                                                             ~ #dv10 { display:inline-block }
+/*  17 */                                                          #bd10-sw:checked                                                          ~ #bd01-sw:checked ~ #dv11 { display:inline-block }
+/*  18 */                                                          #bd10-sw:checked                                       ~ #bd02-sw:checked                    ~ #dv12 { display:inline-block }
+/*  19 */                                                          #bd10-sw:checked                                       ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv13 { display:inline-block }
+/*  20 */                                                          #bd10-sw:checked                    ~ #bd04-sw:checked                                       ~ #dv14 { display:inline-block }
+/*  21 */                                                          #bd10-sw:checked                    ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dv15 { display:inline-block }
+/*  22 */                                                          #bd10-sw:checked                    ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dv16 { display:inline-block }
+/*  23 */                                                          #bd10-sw:checked                    ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv17 { display:inline-block }
+/*  24 */                                                          #bd10-sw:checked ~ #bd08-sw:checked                                                          ~ #dv18 { display:inline-block }
+/*  25 */                                                          #bd10-sw:checked ~ #bd08-sw:checked                                       ~ #bd01-sw:checked ~ #dv19 { display:inline-block }
+/*  26 */                                                          #bd10-sw:checked ~ #bd08-sw:checked                    ~ #bd02-sw:checked                    ~ #dv1a { display:inline-block }
+/*  27 */                                                          #bd10-sw:checked ~ #bd08-sw:checked                    ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv1b { display:inline-block }
+/*  28 */                                                          #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked                                       ~ #dv1c { display:inline-block }
+/*  29 */                                                          #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dv1d { display:inline-block }
+/*  30 */                                                          #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dv1e { display:inline-block }
+/*  31 */                                                          #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv1f { display:inline-block }
+/*  32 */                                       #bd20-sw:checked                                                                                                ~ #dv20 { display:inline-block }
+/*  33 */                                       #bd20-sw:checked                                                                             ~ #bd01-sw:checked ~ #dv21 { display:inline-block }
+/*  34 */                                       #bd20-sw:checked                                                          ~ #bd02-sw:checked                    ~ #dv22 { display:inline-block }
+/*  35 */                                       #bd20-sw:checked                                                          ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv23 { display:inline-block }
+/*  36 */                                       #bd20-sw:checked                                       ~ #bd04-sw:checked                                       ~ #dv24 { display:inline-block }
+/*  37 */                                       #bd20-sw:checked                                       ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dv25 { display:inline-block }
+/*  38 */                                       #bd20-sw:checked                                       ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dv26 { display:inline-block }
+/*  39 */                                       #bd20-sw:checked                                       ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv27 { display:inline-block }
+/*  30 */                                       #bd20-sw:checked                    ~ #bd08-sw:checked                                                          ~ #dv28 { display:inline-block }
+/*  41 */                                       #bd20-sw:checked                    ~ #bd08-sw:checked                                       ~ #bd01-sw:checked ~ #dv29 { display:inline-block }
+/*  42 */                                       #bd20-sw:checked                    ~ #bd08-sw:checked                    ~ #bd02-sw:checked                    ~ #dv2a { display:inline-block }
+/*  43 */                                       #bd20-sw:checked                    ~ #bd08-sw:checked                    ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv2b { display:inline-block }
+/*  44 */                                       #bd20-sw:checked                    ~ #bd08-sw:checked ~ #bd04-sw:checked                                       ~ #dv2c { display:inline-block }
+/*  45 */                                       #bd20-sw:checked                    ~ #bd08-sw:checked ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dv2d { display:inline-block }
+/*  46 */                                       #bd20-sw:checked                    ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dv2e { display:inline-block }
+/*  47 */                                       #bd20-sw:checked                    ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv2f { display:inline-block }
+/*  48 */                                       #bd20-sw:checked ~ #bd10-sw:checked                                                                             ~ #dv30 { display:inline-block }
+/*  49 */                                       #bd20-sw:checked ~ #bd10-sw:checked                                                          ~ #bd01-sw:checked ~ #dv31 { display:inline-block }
+/*  50 */                                       #bd20-sw:checked ~ #bd10-sw:checked                                       ~ #bd02-sw:checked                    ~ #dv32 { display:inline-block }
+/*  51 */                                       #bd20-sw:checked ~ #bd10-sw:checked                                       ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv33 { display:inline-block }
+/*  52 */                                       #bd20-sw:checked ~ #bd10-sw:checked                    ~ #bd04-sw:checked                                       ~ #dv34 { display:inline-block }
+/*  53 */                                       #bd20-sw:checked ~ #bd10-sw:checked                    ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dv35 { display:inline-block }
+/*  54 */                                       #bd20-sw:checked ~ #bd10-sw:checked                    ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dv36 { display:inline-block }
+/*  55 */                                       #bd20-sw:checked ~ #bd10-sw:checked                    ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv37 { display:inline-block }
+/*  56 */                                       #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked                                                          ~ #dv38 { display:inline-block }
+/*  57 */                                       #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked                                       ~ #bd01-sw:checked ~ #dv39 { display:inline-block }
+/*  58 */                                       #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked                    ~ #bd02-sw:checked                    ~ #dv3a { display:inline-block }
+/*  59 */                                       #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked                    ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv3b { display:inline-block }
+/*  60 */                                       #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked                                       ~ #dv3c { display:inline-block }
+/*  61 */                                       #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dv3d { display:inline-block }
+/*  62 */                                       #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dv3e { display:inline-block }
+/*  63 */                                       #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv3f { display:inline-block }
+/*  64 */                    #bd40-sw:checked                                                                                                                   ~ #dv40 { display:inline-block }
+/*  65 */                    #bd40-sw:checked                                                                                                ~ #bd01-sw:checked ~ #dv41 { display:inline-block }
+/*  66 */                    #bd40-sw:checked                                                                             ~ #bd02-sw:checked                    ~ #dv42 { display:inline-block }
+/*  67 */                    #bd40-sw:checked                                                                             ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv43 { display:inline-block }
+/*  68 */                    #bd40-sw:checked                                                          ~ #bd04-sw:checked                                       ~ #dv44 { display:inline-block }
+/*  69 */                    #bd40-sw:checked                                                          ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dv45 { display:inline-block }
+/*  70 */                    #bd40-sw:checked                                                          ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dv46 { display:inline-block }
+/*  71 */                    #bd40-sw:checked                                                          ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv47 { display:inline-block }
+/*  72 */                    #bd40-sw:checked                                       ~ #bd08-sw:checked                                                          ~ #dv48 { display:inline-block }
+/*  73 */                    #bd40-sw:checked                                       ~ #bd08-sw:checked                                       ~ #bd01-sw:checked ~ #dv49 { display:inline-block }
+/*  74 */                    #bd40-sw:checked                                       ~ #bd08-sw:checked                    ~ #bd02-sw:checked                    ~ #dv4a { display:inline-block }
+/*  75 */                    #bd40-sw:checked                                       ~ #bd08-sw:checked                    ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv4b { display:inline-block }
+/*  76 */                    #bd40-sw:checked                                       ~ #bd08-sw:checked ~ #bd04-sw:checked                                       ~ #dv4c { display:inline-block }
+/*  77 */                    #bd40-sw:checked                                       ~ #bd08-sw:checked ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dv4d { display:inline-block }
+/*  78 */                    #bd40-sw:checked                                       ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dv4e { display:inline-block }
+/*  79 */                    #bd40-sw:checked                                       ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv4f { display:inline-block }
+/*  80 */                    #bd40-sw:checked                    ~ #bd10-sw:checked                                                                             ~ #dv50 { display:inline-block }
+/*  81 */                    #bd40-sw:checked                    ~ #bd10-sw:checked                                                          ~ #bd01-sw:checked ~ #dv51 { display:inline-block }
+/*  82 */                    #bd40-sw:checked                    ~ #bd10-sw:checked                                       ~ #bd02-sw:checked                    ~ #dv52 { display:inline-block }
+/*  83 */                    #bd40-sw:checked                    ~ #bd10-sw:checked                                       ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv53 { display:inline-block }
+/*  84 */                    #bd40-sw:checked                    ~ #bd10-sw:checked                    ~ #bd04-sw:checked                                       ~ #dv54 { display:inline-block }
+/*  85 */                    #bd40-sw:checked                    ~ #bd10-sw:checked                    ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dv55 { display:inline-block }
+/*  86 */                    #bd40-sw:checked                    ~ #bd10-sw:checked                    ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dv56 { display:inline-block }
+/*  87 */                    #bd40-sw:checked                    ~ #bd10-sw:checked                    ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv57 { display:inline-block }
+/*  88 */                    #bd40-sw:checked                    ~ #bd10-sw:checked ~ #bd08-sw:checked                                                          ~ #dv58 { display:inline-block }
+/*  89 */                    #bd40-sw:checked                    ~ #bd10-sw:checked ~ #bd08-sw:checked                                       ~ #bd01-sw:checked ~ #dv59 { display:inline-block }
+/*  90 */                    #bd40-sw:checked                    ~ #bd10-sw:checked ~ #bd08-sw:checked                    ~ #bd02-sw:checked                    ~ #dv5a { display:inline-block }
+/*  91 */                    #bd40-sw:checked                    ~ #bd10-sw:checked ~ #bd08-sw:checked                    ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv5b { display:inline-block }
+/*  92 */                    #bd40-sw:checked                    ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked                                       ~ #dv5c { display:inline-block }
+/*  93 */                    #bd40-sw:checked                    ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dv5d { display:inline-block }
+/*  94 */                    #bd40-sw:checked                    ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dv5e { display:inline-block }
+/*  95 */                    #bd40-sw:checked                    ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv5f { display:inline-block }
+/*  96 */                    #bd40-sw:checked ~ #bd20-sw:checked                                                                                                ~ #dv60 { display:inline-block }
+/*  97 */                    #bd40-sw:checked ~ #bd20-sw:checked                                                                             ~ #bd01-sw:checked ~ #dv61 { display:inline-block }
+/*  98 */                    #bd40-sw:checked ~ #bd20-sw:checked                                                          ~ #bd02-sw:checked                    ~ #dv62 { display:inline-block }
+/*  99 */                    #bd40-sw:checked ~ #bd20-sw:checked                                                          ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv63 { display:inline-block }
+/* 100 */                    #bd40-sw:checked ~ #bd20-sw:checked                                       ~ #bd04-sw:checked                                       ~ #dv64 { display:inline-block }
+/* 101 */                    #bd40-sw:checked ~ #bd20-sw:checked                                       ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dv65 { display:inline-block }
+/* 102 */                    #bd40-sw:checked ~ #bd20-sw:checked                                       ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dv66 { display:inline-block }
+/* 103 */                    #bd40-sw:checked ~ #bd20-sw:checked                                       ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv67 { display:inline-block }
+/* 104 */                    #bd40-sw:checked ~ #bd20-sw:checked                    ~ #bd08-sw:checked                                                          ~ #dv68 { display:inline-block }
+/* 105 */                    #bd40-sw:checked ~ #bd20-sw:checked                    ~ #bd08-sw:checked                                       ~ #bd01-sw:checked ~ #dv69 { display:inline-block }
+/* 106 */                    #bd40-sw:checked ~ #bd20-sw:checked                    ~ #bd08-sw:checked                    ~ #bd02-sw:checked                    ~ #dv6a { display:inline-block }
+/* 107 */                    #bd40-sw:checked ~ #bd20-sw:checked                    ~ #bd08-sw:checked                    ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv6b { display:inline-block }
+/* 108 */                    #bd40-sw:checked ~ #bd20-sw:checked                    ~ #bd08-sw:checked ~ #bd04-sw:checked                                       ~ #dv6c { display:inline-block }
+/* 109 */                    #bd40-sw:checked ~ #bd20-sw:checked                    ~ #bd08-sw:checked ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dv6d { display:inline-block }
+/* 110 */                    #bd40-sw:checked ~ #bd20-sw:checked                    ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dv6e { display:inline-block }
+/* 111 */                    #bd40-sw:checked ~ #bd20-sw:checked                    ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv6f { display:inline-block }
+/* 112 */                    #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked                                                                             ~ #dv70 { display:inline-block }
+/* 113 */                    #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked                                                          ~ #bd01-sw:checked ~ #dv71 { display:inline-block }
+/* 114 */                    #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked                                       ~ #bd02-sw:checked                    ~ #dv72 { display:inline-block }
+/* 115 */                    #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked                                       ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv73 { display:inline-block }
+/* 116 */                    #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked                    ~ #bd04-sw:checked                                       ~ #dv74 { display:inline-block }
+/* 117 */                    #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked                    ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dv75 { display:inline-block }
+/* 118 */                    #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked                    ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dv76 { display:inline-block }
+/* 119 */                    #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked                    ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv77 { display:inline-block }
+/* 120 */                    #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked                                                          ~ #dv78 { display:inline-block }
+/* 121 */                    #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked                                       ~ #bd01-sw:checked ~ #dv79 { display:inline-block }
+/* 122 */                    #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked                    ~ #bd02-sw:checked                    ~ #dv7a { display:inline-block }
+/* 123 */                    #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked                    ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv7b { display:inline-block }
+/* 124 */                    #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked                                       ~ #dv7c { display:inline-block }
+/* 125 */                    #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dv7d { display:inline-block }
+/* 126 */                    #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dv7e { display:inline-block }
+/* 127 */                    #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv7f { display:inline-block }
+/* 128 */ #bd80-sw:checked                                                                                                                                      ~ #dv80 { display:inline-block }
+/* 129 */ #bd80-sw:checked                                                                                                                   ~ #bd01-sw:checked ~ #dv81 { display:inline-block }
+/* 130 */ #bd80-sw:checked                                                                                                ~ #bd02-sw:checked                    ~ #dv82 { display:inline-block }
+/* 131 */ #bd80-sw:checked                                                                                                ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv83 { display:inline-block }
+/* 132 */ #bd80-sw:checked                                                                             ~ #bd04-sw:checked                                       ~ #dv84 { display:inline-block }
+/* 133 */ #bd80-sw:checked                                                                             ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dv85 { display:inline-block }
+/* 134 */ #bd80-sw:checked                                                                             ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dv86 { display:inline-block }
+/* 135 */ #bd80-sw:checked                                                                             ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv87 { display:inline-block }
+/* 136 */ #bd80-sw:checked                                                          ~ #bd08-sw:checked                                                          ~ #dv88 { display:inline-block }
+/* 137 */ #bd80-sw:checked                                                          ~ #bd08-sw:checked                                       ~ #bd01-sw:checked ~ #dv89 { display:inline-block }
+/* 138 */ #bd80-sw:checked                                                          ~ #bd08-sw:checked                    ~ #bd02-sw:checked                    ~ #dv8a { display:inline-block }
+/* 139 */ #bd80-sw:checked                                                          ~ #bd08-sw:checked                    ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv8b { display:inline-block }
+/* 140 */ #bd80-sw:checked                                                          ~ #bd08-sw:checked ~ #bd04-sw:checked                                       ~ #dv8c { display:inline-block }
+/* 141 */ #bd80-sw:checked                                                          ~ #bd08-sw:checked ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dv8d { display:inline-block }
+/* 142 */ #bd80-sw:checked                                                          ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dv8e { display:inline-block }
+/* 143 */ #bd80-sw:checked                                                          ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv8f { display:inline-block }
+/* 144 */ #bd80-sw:checked                                       ~ #bd10-sw:checked                                                                             ~ #dv90 { display:inline-block }
+/* 145 */ #bd80-sw:checked                                       ~ #bd10-sw:checked                                                          ~ #bd01-sw:checked ~ #dv91 { display:inline-block }
+/* 146 */ #bd80-sw:checked                                       ~ #bd10-sw:checked                                       ~ #bd02-sw:checked                    ~ #dv92 { display:inline-block }
+/* 147 */ #bd80-sw:checked                                       ~ #bd10-sw:checked                                       ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv93 { display:inline-block }
+/* 148 */ #bd80-sw:checked                                       ~ #bd10-sw:checked                    ~ #bd04-sw:checked                                       ~ #dv94 { display:inline-block }
+/* 149 */ #bd80-sw:checked                                       ~ #bd10-sw:checked                    ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dv95 { display:inline-block }
+/* 150 */ #bd80-sw:checked                                       ~ #bd10-sw:checked                    ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dv96 { display:inline-block }
+/* 151 */ #bd80-sw:checked                                       ~ #bd10-sw:checked                    ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv97 { display:inline-block }
+/* 152 */ #bd80-sw:checked                                       ~ #bd10-sw:checked ~ #bd08-sw:checked                                                          ~ #dv98 { display:inline-block }
+/* 153 */ #bd80-sw:checked                                       ~ #bd10-sw:checked ~ #bd08-sw:checked                                       ~ #bd01-sw:checked ~ #dv99 { display:inline-block }
+/* 154 */ #bd80-sw:checked                                       ~ #bd10-sw:checked ~ #bd08-sw:checked                    ~ #bd02-sw:checked                    ~ #dv9a { display:inline-block }
+/* 155 */ #bd80-sw:checked                                       ~ #bd10-sw:checked ~ #bd08-sw:checked                    ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv9b { display:inline-block }
+/* 156 */ #bd80-sw:checked                                       ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked                                       ~ #dv9c { display:inline-block }
+/* 157 */ #bd80-sw:checked                                       ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dv9d { display:inline-block }
+/* 158 */ #bd80-sw:checked                                       ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dv9e { display:inline-block }
+/* 159 */ #bd80-sw:checked                                       ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dv9f { display:inline-block }
+/* 160 */ #bd80-sw:checked                    ~ #bd20-sw:checked                                                                                                ~ #dva0 { display:inline-block }
+/* 161 */ #bd80-sw:checked                    ~ #bd20-sw:checked                                                                             ~ #bd01-sw:checked ~ #dva1 { display:inline-block }
+/* 162 */ #bd80-sw:checked                    ~ #bd20-sw:checked                                                          ~ #bd02-sw:checked                    ~ #dva2 { display:inline-block }
+/* 163 */ #bd80-sw:checked                    ~ #bd20-sw:checked                                                          ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dva3 { display:inline-block }
+/* 164 */ #bd80-sw:checked                    ~ #bd20-sw:checked                                       ~ #bd04-sw:checked                                       ~ #dva4 { display:inline-block }
+/* 165 */ #bd80-sw:checked                    ~ #bd20-sw:checked                                       ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dva5 { display:inline-block }
+/* 166 */ #bd80-sw:checked                    ~ #bd20-sw:checked                                       ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dva6 { display:inline-block }
+/* 167 */ #bd80-sw:checked                    ~ #bd20-sw:checked                                       ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dva7 { display:inline-block }
+/* 168 */ #bd80-sw:checked                    ~ #bd20-sw:checked                    ~ #bd08-sw:checked                                                          ~ #dva8 { display:inline-block }
+/* 169 */ #bd80-sw:checked                    ~ #bd20-sw:checked                    ~ #bd08-sw:checked                                       ~ #bd01-sw:checked ~ #dva9 { display:inline-block }
+/* 170 */ #bd80-sw:checked                    ~ #bd20-sw:checked                    ~ #bd08-sw:checked                    ~ #bd02-sw:checked                    ~ #dvaa { display:inline-block }
+/* 171 */ #bd80-sw:checked                    ~ #bd20-sw:checked                    ~ #bd08-sw:checked                    ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dvab { display:inline-block }
+/* 172 */ #bd80-sw:checked                    ~ #bd20-sw:checked                    ~ #bd08-sw:checked ~ #bd04-sw:checked                                       ~ #dvac { display:inline-block }
+/* 173 */ #bd80-sw:checked                    ~ #bd20-sw:checked                    ~ #bd08-sw:checked ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dvad { display:inline-block }
+/* 174 */ #bd80-sw:checked                    ~ #bd20-sw:checked                    ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dvae { display:inline-block }
+/* 175 */ #bd80-sw:checked                    ~ #bd20-sw:checked                    ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dvaf { display:inline-block }
+/* 176 */ #bd80-sw:checked                    ~ #bd20-sw:checked ~ #bd10-sw:checked                                                                             ~ #dvb0 { display:inline-block }
+/* 177 */ #bd80-sw:checked                    ~ #bd20-sw:checked ~ #bd10-sw:checked                                                          ~ #bd01-sw:checked ~ #dvb1 { display:inline-block }
+/* 178 */ #bd80-sw:checked                    ~ #bd20-sw:checked ~ #bd10-sw:checked                                       ~ #bd02-sw:checked                    ~ #dvb2 { display:inline-block }
+/* 179 */ #bd80-sw:checked                    ~ #bd20-sw:checked ~ #bd10-sw:checked                                       ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dvb3 { display:inline-block }
+/* 180 */ #bd80-sw:checked                    ~ #bd20-sw:checked ~ #bd10-sw:checked                    ~ #bd04-sw:checked                                       ~ #dvb4 { display:inline-block }
+/* 181 */ #bd80-sw:checked                    ~ #bd20-sw:checked ~ #bd10-sw:checked                    ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dvb5 { display:inline-block }
+/* 182 */ #bd80-sw:checked                    ~ #bd20-sw:checked ~ #bd10-sw:checked                    ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dvb6 { display:inline-block }
+/* 183 */ #bd80-sw:checked                    ~ #bd20-sw:checked ~ #bd10-sw:checked                    ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dvb7 { display:inline-block }
+/* 184 */ #bd80-sw:checked                    ~ #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked                                                          ~ #dvb8 { display:inline-block }
+/* 185 */ #bd80-sw:checked                    ~ #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked                                       ~ #bd01-sw:checked ~ #dvb9 { display:inline-block }
+/* 186 */ #bd80-sw:checked                    ~ #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked                    ~ #bd02-sw:checked                    ~ #dvba { display:inline-block }
+/* 187 */ #bd80-sw:checked                    ~ #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked                    ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dvbb { display:inline-block }
+/* 188 */ #bd80-sw:checked                    ~ #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked                                       ~ #dvbc { display:inline-block }
+/* 189 */ #bd80-sw:checked                    ~ #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dvbd { display:inline-block }
+/* 190 */ #bd80-sw:checked                    ~ #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dvbe { display:inline-block }
+/* 191 */ #bd80-sw:checked                    ~ #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dvbf { display:inline-block }
+/* 192 */ #bd80-sw:checked ~ #bd40-sw:checked                                                                                                                   ~ #dvc0 { display:inline-block }
+/* 193 */ #bd80-sw:checked ~ #bd40-sw:checked                                                                                                ~ #bd01-sw:checked ~ #dvc1 { display:inline-block }
+/* 194 */ #bd80-sw:checked ~ #bd40-sw:checked                                                                             ~ #bd02-sw:checked                    ~ #dvc2 { display:inline-block }
+/* 195 */ #bd80-sw:checked ~ #bd40-sw:checked                                                                             ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dvc3 { display:inline-block }
+/* 196 */ #bd80-sw:checked ~ #bd40-sw:checked                                                          ~ #bd04-sw:checked                                       ~ #dvc4 { display:inline-block }
+/* 197 */ #bd80-sw:checked ~ #bd40-sw:checked                                                          ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dvc5 { display:inline-block }
+/* 198 */ #bd80-sw:checked ~ #bd40-sw:checked                                                          ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dvc6 { display:inline-block }
+/* 199 */ #bd80-sw:checked ~ #bd40-sw:checked                                                          ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dvc7 { display:inline-block }
+/* 200 */ #bd80-sw:checked ~ #bd40-sw:checked                                       ~ #bd08-sw:checked                                                          ~ #dvc8 { display:inline-block }
+/* 201 */ #bd80-sw:checked ~ #bd40-sw:checked                                       ~ #bd08-sw:checked                                       ~ #bd01-sw:checked ~ #dvc9 { display:inline-block }
+/* 202 */ #bd80-sw:checked ~ #bd40-sw:checked                                       ~ #bd08-sw:checked                    ~ #bd02-sw:checked                    ~ #dvca { display:inline-block }
+/* 203 */ #bd80-sw:checked ~ #bd40-sw:checked                                       ~ #bd08-sw:checked                    ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dvcb { display:inline-block }
+/* 204 */ #bd80-sw:checked ~ #bd40-sw:checked                                       ~ #bd08-sw:checked ~ #bd04-sw:checked                                       ~ #dvcc { display:inline-block }
+/* 205 */ #bd80-sw:checked ~ #bd40-sw:checked                                       ~ #bd08-sw:checked ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dvcd { display:inline-block }
+/* 206 */ #bd80-sw:checked ~ #bd40-sw:checked                                       ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dvce { display:inline-block }
+/* 207 */ #bd80-sw:checked ~ #bd40-sw:checked                                       ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dvcf { display:inline-block }
+/* 208 */ #bd80-sw:checked ~ #bd40-sw:checked                    ~ #bd10-sw:checked                                                                             ~ #dvd0 { display:inline-block }
+/* 209 */ #bd80-sw:checked ~ #bd40-sw:checked                    ~ #bd10-sw:checked                                                          ~ #bd01-sw:checked ~ #dvd1 { display:inline-block }
+/* 210 */ #bd80-sw:checked ~ #bd40-sw:checked                    ~ #bd10-sw:checked                                       ~ #bd02-sw:checked                    ~ #dvd2 { display:inline-block }
+/* 211 */ #bd80-sw:checked ~ #bd40-sw:checked                    ~ #bd10-sw:checked                                       ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dvd3 { display:inline-block }
+/* 212 */ #bd80-sw:checked ~ #bd40-sw:checked                    ~ #bd10-sw:checked                    ~ #bd04-sw:checked                                       ~ #dvd4 { display:inline-block }
+/* 213 */ #bd80-sw:checked ~ #bd40-sw:checked                    ~ #bd10-sw:checked                    ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dvd5 { display:inline-block }
+/* 214 */ #bd80-sw:checked ~ #bd40-sw:checked                    ~ #bd10-sw:checked                    ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dvd6 { display:inline-block }
+/* 215 */ #bd80-sw:checked ~ #bd40-sw:checked                    ~ #bd10-sw:checked                    ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dvd7 { display:inline-block }
+/* 216 */ #bd80-sw:checked ~ #bd40-sw:checked                    ~ #bd10-sw:checked ~ #bd08-sw:checked                                                          ~ #dvd8 { display:inline-block }
+/* 217 */ #bd80-sw:checked ~ #bd40-sw:checked                    ~ #bd10-sw:checked ~ #bd08-sw:checked                                       ~ #bd01-sw:checked ~ #dvd9 { display:inline-block }
+/* 218 */ #bd80-sw:checked ~ #bd40-sw:checked                    ~ #bd10-sw:checked ~ #bd08-sw:checked                    ~ #bd02-sw:checked                    ~ #dvda { display:inline-block }
+/* 219 */ #bd80-sw:checked ~ #bd40-sw:checked                    ~ #bd10-sw:checked ~ #bd08-sw:checked                    ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dvdb { display:inline-block }
+/* 220 */ #bd80-sw:checked ~ #bd40-sw:checked                    ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked                                       ~ #dvdc { display:inline-block }
+/* 221 */ #bd80-sw:checked ~ #bd40-sw:checked                    ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dvdd { display:inline-block }
+/* 222 */ #bd80-sw:checked ~ #bd40-sw:checked                    ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dvde { display:inline-block }
+/* 223 */ #bd80-sw:checked ~ #bd40-sw:checked                    ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dvdf { display:inline-block }
+/* 224 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked                                                                                                ~ #dve0 { display:inline-block }
+/* 225 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked                                                                             ~ #bd01-sw:checked ~ #dve1 { display:inline-block }
+/* 226 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked                                                          ~ #bd02-sw:checked                    ~ #dve2 { display:inline-block }
+/* 227 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked                                                          ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dve3 { display:inline-block }
+/* 228 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked                                       ~ #bd04-sw:checked                                       ~ #dve4 { display:inline-block }
+/* 229 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked                                       ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dve5 { display:inline-block }
+/* 230 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked                                       ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dve6 { display:inline-block }
+/* 231 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked                                       ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dve7 { display:inline-block }
+/* 232 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked                    ~ #bd08-sw:checked                                                          ~ #dve8 { display:inline-block }
+/* 233 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked                    ~ #bd08-sw:checked                                       ~ #bd01-sw:checked ~ #dve9 { display:inline-block }
+/* 234 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked                    ~ #bd08-sw:checked                    ~ #bd02-sw:checked                    ~ #dvea { display:inline-block }
+/* 235 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked                    ~ #bd08-sw:checked                    ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dveb { display:inline-block }
+/* 236 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked                    ~ #bd08-sw:checked ~ #bd04-sw:checked                                       ~ #dvec { display:inline-block }
+/* 237 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked                    ~ #bd08-sw:checked ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dved { display:inline-block }
+/* 238 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked                    ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dvee { display:inline-block }
+/* 239 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked                    ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dvef { display:inline-block }
+/* 240 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked                                                                             ~ #dvf0 { display:inline-block }
+/* 241 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked                                                          ~ #bd01-sw:checked ~ #dvf1 { display:inline-block }
+/* 242 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked                                       ~ #bd02-sw:checked                    ~ #dvf2 { display:inline-block }
+/* 243 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked                                       ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dvf3 { display:inline-block }
+/* 244 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked                    ~ #bd04-sw:checked                                       ~ #dvf4 { display:inline-block }
+/* 245 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked                    ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dvf5 { display:inline-block }
+/* 246 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked                    ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dvf6 { display:inline-block }
+/* 247 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked                    ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dvf7 { display:inline-block }
+/* 248 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked                                                          ~ #dvf8 { display:inline-block }
+/* 249 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked                                       ~ #bd01-sw:checked ~ #dvf9 { display:inline-block }
+/* 250 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked                    ~ #bd02-sw:checked                    ~ #dvfa { display:inline-block }
+/* 251 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked                    ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dvfb { display:inline-block }
+/* 252 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked                                       ~ #dvfc { display:inline-block }
+/* 253 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked                    ~ #bd01-sw:checked ~ #dvfd { display:inline-block }
+/* 254 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked                    ~ #dvfe { display:inline-block }
+/* 255 */ #bd80-sw:checked ~ #bd40-sw:checked ~ #bd20-sw:checked ~ #bd10-sw:checked ~ #bd08-sw:checked ~ #bd04-sw:checked ~ #bd02-sw:checked ~ #bd01-sw:checked ~ #dvff { display:inline-block }
+</style>
+</head>
+<body>
+<div id="root">
+	<h1>Binary-to-Decimal using CSS Only</h1>
+	<h2>No Javascript!</h2>
+	<div id="base">
+		<!-- binary digit labels -->
+		<label id="bd80-label" class="column80" for="bd80-sw">128</label>
+		<label id="bd40-label" class="column40" for="bd40-sw">64</label>
+		<label id="bd20-label" class="column20" for="bd20-sw">32</label>
+		<label id="bd10-label" class="column10" for="bd10-sw">16</label>
+		<label id="bd08-label" class="column08" for="bd08-sw">8</label>
+		<label id="bd04-label" class="column04" for="bd04-sw">4</label>
+		<label id="bd02-label" class="column02" for="bd02-sw">2</label>
+		<label id="bd01-label" class="column01" for="bd01-sw">1</label>
+
+		<!-- binary digit labels  -->
+		<input id="bd80-sw" class="switch column80" type="checkbox" />
+		<input id="bd40-sw" class="switch column40" type="checkbox" />
+		<input id="bd20-sw" class="switch column20" type="checkbox" />
+		<input id="bd10-sw" class="switch column10" type="checkbox" />
+		<input id="bd08-sw" class="switch column08" type="checkbox" />
+		<input id="bd04-sw" class="switch column04" type="checkbox" />
+		<input id="bd02-sw" class="switch column02" type="checkbox" />
+		<input id="bd01-sw" class="switch column01" type="checkbox" />
+
+		<!-- binary digit LED indicators -->
+		<div id="bd80-led" class="led column80"></div>
+		<div id="bd40-led" class="led column40"></div>
+		<div id="bd20-led" class="led column20"></div>
+		<div id="bd10-led" class="led column10"></div>
+		<div id="bd08-led" class="led column08"></div>
+		<div id="bd04-led" class="led column04"></div>
+		<div id="bd02-led" class="led column02"></div>
+		<div id="bd01-led" class="led column01"></div>
+
+		<!-- decimal value indicators.  One for each number from 0 to 255, stacked on top of each other
+		with 0 at the lowest index and 255 at the highest.  As each combination of binary digits is selected,
+		CSS selectors are used to display the appropriate decimal values.  The stacking makes sure that even
+		though multiples values are disapled at any givne time, only the topmost item in the Z order is
+		visible which will be equivalent to the total binary value currently selected. -->
+		<div id="dv00" class="dv" style="z-index: 0;">0</div>
+		<div id="dv01" class="dv" style="z-index: 1;">1</div>
+		<div id="dv02" class="dv" style="z-index: 2;">2</div>
+		<div id="dv03" class="dv" style="z-index: 3;">3</div>
+		<div id="dv04" class="dv" style="z-index: 4;">4</div>
+		<div id="dv05" class="dv" style="z-index: 5;">5</div>
+		<div id="dv06" class="dv" style="z-index: 6;">6</div>
+		<div id="dv07" class="dv" style="z-index: 7;">7</div>
+		<div id="dv08" class="dv" style="z-index: 8;">8</div>
+		<div id="dv09" class="dv" style="z-index: 9;">9</div>
+		<div id="dv0a" class="dv" style="z-index: 10;">10</div>
+		<div id="dv0b" class="dv" style="z-index: 11;">11</div>
+		<div id="dv0c" class="dv" style="z-index: 12;">12</div>
+		<div id="dv0d" class="dv" style="z-index: 13;">13</div>
+		<div id="dv0e" class="dv" style="z-index: 14;">14</div>
+		<div id="dv0f" class="dv" style="z-index: 15;">15</div>
+		<div id="dv10" class="dv" style="z-index: 16;">16</div>
+		<div id="dv11" class="dv" style="z-index: 17;">17</div>
+		<div id="dv12" class="dv" style="z-index: 18;">18</div>
+		<div id="dv13" class="dv" style="z-index: 19;">19</div>
+		<div id="dv14" class="dv" style="z-index: 20;">20</div>
+		<div id="dv15" class="dv" style="z-index: 21;">21</div>
+		<div id="dv16" class="dv" style="z-index: 22;">22</div>
+		<div id="dv17" class="dv" style="z-index: 23;">23</div>
+		<div id="dv18" class="dv" style="z-index: 24;">24</div>
+		<div id="dv19" class="dv" style="z-index: 25;">25</div>
+		<div id="dv1a" class="dv" style="z-index: 26;">26</div>
+		<div id="dv1b" class="dv" style="z-index: 27;">27</div>
+		<div id="dv1c" class="dv" style="z-index: 28;">28</div>
+		<div id="dv1d" class="dv" style="z-index: 29;">29</div>
+		<div id="dv1e" class="dv" style="z-index: 30;">30</div>
+		<div id="dv1f" class="dv" style="z-index: 31;">31</div>
+		<div id="dv20" class="dv" style="z-index: 32;">32</div>
+		<div id="dv21" class="dv" style="z-index: 33;">33</div>
+		<div id="dv22" class="dv" style="z-index: 34;">34</div>
+		<div id="dv23" class="dv" style="z-index: 35;">35</div>
+		<div id="dv24" class="dv" style="z-index: 36;">36</div>
+		<div id="dv25" class="dv" style="z-index: 37;">37</div>
+		<div id="dv26" class="dv" style="z-index: 38;">38</div>
+		<div id="dv27" class="dv" style="z-index: 39;">39</div>
+		<div id="dv28" class="dv" style="z-index: 40;">40</div>
+		<div id="dv29" class="dv" style="z-index: 41;">41</div>
+		<div id="dv2a" class="dv" style="z-index: 42;">42</div>
+		<div id="dv2b" class="dv" style="z-index: 43;">43</div>
+		<div id="dv2c" class="dv" style="z-index: 44;">44</div>
+		<div id="dv2d" class="dv" style="z-index: 45;">45</div>
+		<div id="dv2e" class="dv" style="z-index: 46;">46</div>
+		<div id="dv2f" class="dv" style="z-index: 47;">47</div>
+		<div id="dv30" class="dv" style="z-index: 48;">48</div>
+		<div id="dv31" class="dv" style="z-index: 49;">49</div>
+		<div id="dv32" class="dv" style="z-index: 50;">50</div>
+		<div id="dv33" class="dv" style="z-index: 51;">51</div>
+		<div id="dv34" class="dv" style="z-index: 52;">52</div>
+		<div id="dv35" class="dv" style="z-index: 53;">53</div>
+		<div id="dv36" class="dv" style="z-index: 54;">54</div>
+		<div id="dv37" class="dv" style="z-index: 55;">55</div>
+		<div id="dv38" class="dv" style="z-index: 56;">56</div>
+		<div id="dv39" class="dv" style="z-index: 57;">57</div>
+		<div id="dv3a" class="dv" style="z-index: 58;">58</div>
+		<div id="dv3b" class="dv" style="z-index: 59;">59</div>
+		<div id="dv3c" class="dv" style="z-index: 60;">60</div>
+		<div id="dv3d" class="dv" style="z-index: 61;">61</div>
+		<div id="dv3e" class="dv" style="z-index: 62;">62</div>
+		<div id="dv3f" class="dv" style="z-index: 63;">63</div>
+		<div id="dv40" class="dv" style="z-index: 64;">64</div>
+		<div id="dv41" class="dv" style="z-index: 65;">65</div>
+		<div id="dv42" class="dv" style="z-index: 66;">66</div>
+		<div id="dv43" class="dv" style="z-index: 67;">67</div>
+		<div id="dv44" class="dv" style="z-index: 68;">68</div>
+		<div id="dv45" class="dv" style="z-index: 69;">69</div>
+		<div id="dv46" class="dv" style="z-index: 70;">70</div>
+		<div id="dv47" class="dv" style="z-index: 71;">71</div>
+		<div id="dv48" class="dv" style="z-index: 72;">72</div>
+		<div id="dv49" class="dv" style="z-index: 73;">73</div>
+		<div id="dv4a" class="dv" style="z-index: 74;">74</div>
+		<div id="dv4b" class="dv" style="z-index: 75;">75</div>
+		<div id="dv4c" class="dv" style="z-index: 76;">76</div>
+		<div id="dv4d" class="dv" style="z-index: 77;">77</div>
+		<div id="dv4e" class="dv" style="z-index: 78;">78</div>
+		<div id="dv4f" class="dv" style="z-index: 79;">79</div>
+		<div id="dv50" class="dv" style="z-index: 80;">80</div>
+		<div id="dv51" class="dv" style="z-index: 81;">81</div>
+		<div id="dv52" class="dv" style="z-index: 82;">82</div>
+		<div id="dv53" class="dv" style="z-index: 83;">83</div>
+		<div id="dv54" class="dv" style="z-index: 84;">84</div>
+		<div id="dv55" class="dv" style="z-index: 85;">85</div>
+		<div id="dv56" class="dv" style="z-index: 86;">86</div>
+		<div id="dv57" class="dv" style="z-index: 87;">87</div>
+		<div id="dv58" class="dv" style="z-index: 88;">88</div>
+		<div id="dv59" class="dv" style="z-index: 89;">89</div>
+		<div id="dv5a" class="dv" style="z-index: 90;">90</div>
+		<div id="dv5b" class="dv" style="z-index: 91;">91</div>
+		<div id="dv5c" class="dv" style="z-index: 92;">92</div>
+		<div id="dv5d" class="dv" style="z-index: 93;">93</div>
+		<div id="dv5e" class="dv" style="z-index: 94;">94</div>
+		<div id="dv5f" class="dv" style="z-index: 95;">95</div>
+		<div id="dv60" class="dv" style="z-index: 96;">96</div>
+		<div id="dv61" class="dv" style="z-index: 97;">97</div>
+		<div id="dv62" class="dv" style="z-index: 98;">98</div>
+		<div id="dv63" class="dv" style="z-index: 99;">99</div>
+		<div id="dv64" class="dv" style="z-index: 100;">100</div>
+		<div id="dv65" class="dv" style="z-index: 101;">101</div>
+		<div id="dv66" class="dv" style="z-index: 102;">102</div>
+		<div id="dv67" class="dv" style="z-index: 103;">103</div>
+		<div id="dv68" class="dv" style="z-index: 104;">104</div>
+		<div id="dv69" class="dv" style="z-index: 105;">105</div>
+		<div id="dv6a" class="dv" style="z-index: 106;">106</div>
+		<div id="dv6b" class="dv" style="z-index: 107;">107</div>
+		<div id="dv6c" class="dv" style="z-index: 108;">108</div>
+		<div id="dv6d" class="dv" style="z-index: 109;">109</div>
+		<div id="dv6e" class="dv" style="z-index: 110;">110</div>
+		<div id="dv6f" class="dv" style="z-index: 111;">111</div>
+		<div id="dv70" class="dv" style="z-index: 112;">112</div>
+		<div id="dv71" class="dv" style="z-index: 113;">113</div>
+		<div id="dv72" class="dv" style="z-index: 114;">114</div>
+		<div id="dv73" class="dv" style="z-index: 115;">115</div>
+		<div id="dv74" class="dv" style="z-index: 116;">116</div>
+		<div id="dv75" class="dv" style="z-index: 117;">117</div>
+		<div id="dv76" class="dv" style="z-index: 118;">118</div>
+		<div id="dv77" class="dv" style="z-index: 119;">119</div>
+		<div id="dv78" class="dv" style="z-index: 120;">120</div>
+		<div id="dv79" class="dv" style="z-index: 121;">121</div>
+		<div id="dv7a" class="dv" style="z-index: 122;">122</div>
+		<div id="dv7b" class="dv" style="z-index: 123;">123</div>
+		<div id="dv7c" class="dv" style="z-index: 124;">124</div>
+		<div id="dv7d" class="dv" style="z-index: 125;">125</div>
+		<div id="dv7e" class="dv" style="z-index: 126;">126</div>
+		<div id="dv7f" class="dv" style="z-index: 127;">127</div>
+		<div id="dv80" class="dv" style="z-index: 128;">128</div>
+		<div id="dv81" class="dv" style="z-index: 129;">129</div>
+		<div id="dv82" class="dv" style="z-index: 130;">130</div>
+		<div id="dv83" class="dv" style="z-index: 131;">131</div>
+		<div id="dv84" class="dv" style="z-index: 132;">132</div>
+		<div id="dv85" class="dv" style="z-index: 133;">133</div>
+		<div id="dv86" class="dv" style="z-index: 134;">134</div>
+		<div id="dv87" class="dv" style="z-index: 135;">135</div>
+		<div id="dv88" class="dv" style="z-index: 136;">136</div>
+		<div id="dv89" class="dv" style="z-index: 137;">137</div>
+		<div id="dv8a" class="dv" style="z-index: 138;">138</div>
+		<div id="dv8b" class="dv" style="z-index: 139;">139</div>
+		<div id="dv8c" class="dv" style="z-index: 140;">140</div>
+		<div id="dv8d" class="dv" style="z-index: 141;">141</div>
+		<div id="dv8e" class="dv" style="z-index: 142;">142</div>
+		<div id="dv8f" class="dv" style="z-index: 143;">143</div>
+		<div id="dv90" class="dv" style="z-index: 144;">144</div>
+		<div id="dv91" class="dv" style="z-index: 145;">145</div>
+		<div id="dv92" class="dv" style="z-index: 146;">146</div>
+		<div id="dv93" class="dv" style="z-index: 147;">147</div>
+		<div id="dv94" class="dv" style="z-index: 148;">148</div>
+		<div id="dv95" class="dv" style="z-index: 149;">149</div>
+		<div id="dv96" class="dv" style="z-index: 150;">150</div>
+		<div id="dv97" class="dv" style="z-index: 151;">151</div>
+		<div id="dv98" class="dv" style="z-index: 152;">152</div>
+		<div id="dv99" class="dv" style="z-index: 153;">153</div>
+		<div id="dv9a" class="dv" style="z-index: 154;">154</div>
+		<div id="dv9b" class="dv" style="z-index: 155;">155</div>
+		<div id="dv9c" class="dv" style="z-index: 156;">156</div>
+		<div id="dv9d" class="dv" style="z-index: 157;">157</div>
+		<div id="dv9e" class="dv" style="z-index: 158;">158</div>
+		<div id="dv9f" class="dv" style="z-index: 159;">159</div>
+		<div id="dva0" class="dv" style="z-index: 160;">160</div>
+		<div id="dva1" class="dv" style="z-index: 161;">161</div>
+		<div id="dva2" class="dv" style="z-index: 162;">162</div>
+		<div id="dva3" class="dv" style="z-index: 163;">163</div>
+		<div id="dva4" class="dv" style="z-index: 164;">164</div>
+		<div id="dva5" class="dv" style="z-index: 165;">165</div>
+		<div id="dva6" class="dv" style="z-index: 166;">166</div>
+		<div id="dva7" class="dv" style="z-index: 167;">167</div>
+		<div id="dva8" class="dv" style="z-index: 168;">168</div>
+		<div id="dva9" class="dv" style="z-index: 169;">169</div>
+		<div id="dvaa" class="dv" style="z-index: 170;">170</div>
+		<div id="dvab" class="dv" style="z-index: 171;">171</div>
+		<div id="dvac" class="dv" style="z-index: 172;">172</div>
+		<div id="dvad" class="dv" style="z-index: 173;">173</div>
+		<div id="dvae" class="dv" style="z-index: 174;">174</div>
+		<div id="dvaf" class="dv" style="z-index: 175;">175</div>
+		<div id="dvb0" class="dv" style="z-index: 176;">176</div>
+		<div id="dvb1" class="dv" style="z-index: 177;">177</div>
+		<div id="dvb2" class="dv" style="z-index: 178;">178</div>
+		<div id="dvb3" class="dv" style="z-index: 179;">179</div>
+		<div id="dvb4" class="dv" style="z-index: 180;">180</div>
+		<div id="dvb5" class="dv" style="z-index: 181;">181</div>
+		<div id="dvb6" class="dv" style="z-index: 182;">182</div>
+		<div id="dvb7" class="dv" style="z-index: 183;">183</div>
+		<div id="dvb8" class="dv" style="z-index: 184;">184</div>
+		<div id="dvb9" class="dv" style="z-index: 185;">185</div>
+		<div id="dvba" class="dv" style="z-index: 186;">186</div>
+		<div id="dvbb" class="dv" style="z-index: 187;">187</div>
+		<div id="dvbc" class="dv" style="z-index: 188;">188</div>
+		<div id="dvbd" class="dv" style="z-index: 189;">189</div>
+		<div id="dvbe" class="dv" style="z-index: 190;">190</div>
+		<div id="dvbf" class="dv" style="z-index: 191;">191</div>
+		<div id="dvc0" class="dv" style="z-index: 192;">192</div>
+		<div id="dvc1" class="dv" style="z-index: 193;">193</div>
+		<div id="dvc2" class="dv" style="z-index: 194;">194</div>
+		<div id="dvc3" class="dv" style="z-index: 195;">195</div>
+		<div id="dvc4" class="dv" style="z-index: 196;">196</div>
+		<div id="dvc5" class="dv" style="z-index: 197;">197</div>
+		<div id="dvc6" class="dv" style="z-index: 198;">198</div>
+		<div id="dvc7" class="dv" style="z-index: 199;">199</div>
+		<div id="dvc8" class="dv" style="z-index: 200;">200</div>
+		<div id="dvc9" class="dv" style="z-index: 201;">201</div>
+		<div id="dvca" class="dv" style="z-index: 202;">202</div>
+		<div id="dvcb" class="dv" style="z-index: 203;">203</div>
+		<div id="dvcc" class="dv" style="z-index: 204;">204</div>
+		<div id="dvcd" class="dv" style="z-index: 205;">205</div>
+		<div id="dvce" class="dv" style="z-index: 206;">206</div>
+		<div id="dvcf" class="dv" style="z-index: 207;">207</div>
+		<div id="dvd0" class="dv" style="z-index: 208;">208</div>
+		<div id="dvd1" class="dv" style="z-index: 209;">209</div>
+		<div id="dvd2" class="dv" style="z-index: 210;">210</div>
+		<div id="dvd3" class="dv" style="z-index: 211;">211</div>
+		<div id="dvd4" class="dv" style="z-index: 212;">212</div>
+		<div id="dvd5" class="dv" style="z-index: 213;">213</div>
+		<div id="dvd6" class="dv" style="z-index: 214;">214</div>
+		<div id="dvd7" class="dv" style="z-index: 215;">215</div>
+		<div id="dvd8" class="dv" style="z-index: 216;">216</div>
+		<div id="dvd9" class="dv" style="z-index: 217;">217</div>
+		<div id="dvda" class="dv" style="z-index: 218;">218</div>
+		<div id="dvdb" class="dv" style="z-index: 219;">219</div>
+		<div id="dvdc" class="dv" style="z-index: 220;">220</div>
+		<div id="dvdd" class="dv" style="z-index: 221;">221</div>
+		<div id="dvde" class="dv" style="z-index: 222;">222</div>
+		<div id="dvdf" class="dv" style="z-index: 223;">223</div>
+		<div id="dve0" class="dv" style="z-index: 224;">224</div>
+		<div id="dve1" class="dv" style="z-index: 225;">225</div>
+		<div id="dve2" class="dv" style="z-index: 226;">226</div>
+		<div id="dve3" class="dv" style="z-index: 227;">227</div>
+		<div id="dve4" class="dv" style="z-index: 228;">228</div>
+		<div id="dve5" class="dv" style="z-index: 229;">229</div>
+		<div id="dve6" class="dv" style="z-index: 230;">230</div>
+		<div id="dve7" class="dv" style="z-index: 231;">231</div>
+		<div id="dve8" class="dv" style="z-index: 232;">232</div>
+		<div id="dve9" class="dv" style="z-index: 233;">233</div>
+		<div id="dvea" class="dv" style="z-index: 234;">234</div>
+		<div id="dveb" class="dv" style="z-index: 235;">235</div>
+		<div id="dvec" class="dv" style="z-index: 236;">236</div>
+		<div id="dved" class="dv" style="z-index: 237;">237</div>
+		<div id="dvee" class="dv" style="z-index: 238;">238</div>
+		<div id="dvef" class="dv" style="z-index: 239;">239</div>
+		<div id="dvf0" class="dv" style="z-index: 240;">240</div>
+		<div id="dvf1" class="dv" style="z-index: 241;">241</div>
+		<div id="dvf2" class="dv" style="z-index: 242;">242</div>
+		<div id="dvf3" class="dv" style="z-index: 243;">243</div>
+		<div id="dvf4" class="dv" style="z-index: 244;">244</div>
+		<div id="dvf5" class="dv" style="z-index: 245;">245</div>
+		<div id="dvf6" class="dv" style="z-index: 246;">246</div>
+		<div id="dvf7" class="dv" style="z-index: 247;">247</div>
+		<div id="dvf8" class="dv" style="z-index: 248;">248</div>
+		<div id="dvf9" class="dv" style="z-index: 249;">249</div>
+		<div id="dvfa" class="dv" style="z-index: 250;">250</div>
+		<div id="dvfb" class="dv" style="z-index: 251;">251</div>
+		<div id="dvfc" class="dv" style="z-index: 252;">252</div>
+		<div id="dvfd" class="dv" style="z-index: 253;">253</div>
+		<div id="dvfe" class="dv" style="z-index: 254;">254</div>
+		<div id="dvff" class="dv" style="z-index: 255;">255</div>
+
+		<!-- labe lfor decimal area -->
+		<div id="decimal-label">decimal</div>
+		<!-- label for binary area -->
+		<div id="binary-label">binary</div>
+		<!-- line dividing decimal and binary areas -->
+		<div id="divider"></div>
+	</div>
+</div>
+</body>
+</html>
