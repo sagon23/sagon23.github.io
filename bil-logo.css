@@ -1,17 +1,18 @@
 #logo {
-position: relative;
-width: 300px;
-height: 300px;
+position:relative;
+width: 100px;
+height: 100px;
 margin: 0 auto;
-top:100px;
-transform:scale(0.3,0.3)
+top:7px;
+left:0px;
+margin:10px;
 }
 #logo .triangle1 {
 width: 0px;
 height: 0px;
-border-left: 150px solid transparent;
-border-right: 150px solid transparent;
-border-bottom: calc(2 * 150px * 0.866) solid black;
+border-left: 50px solid transparent;
+border-right: 50px solid transparent;
+border-bottom: 87px solid black;
 position: absolute;
 top: 50%;
 left: 50%;
@@ -19,9 +20,9 @@ transform: translate(-50%, -66%);
 z-index:1;
 }
 #logo .circle1 {
-width:250px;
-height:250px;
-background-color:white;
+width:83px;
+height:83px;
+background-color:gold;
 border-radius:100%;
 position: absolute;
 top: 50%;
@@ -30,8 +31,8 @@ transform: translate(-50%, -50%);
 z-index:2;
 }
 #logo .circle2 {
-width:225px;
-height:225px;
+width:75px;
+height:75px;
 background-color:black;
 border-radius:100%;
 position: absolute;
@@ -41,9 +42,9 @@ transform: translate(-50%, -50%);
 z-index:3;
 }
 #logo .circle3 {
-width:155px;
-height:155px;
-background-color:white;
+width:51px;
+height:51px;
+background-color:gold;
 border-radius:100%;
 position: absolute;
 top: 50%;
@@ -52,8 +53,8 @@ transform: translate(-50%, -50%);
 z-index:4;
 }
 #logo .eye-dot {
-width:30px;
-height:30px;
+width:10px;
+height:10px;
 background-color:black;
 border-radius:100%;
 position: absolute;
@@ -63,8 +64,8 @@ transform: translate(-50%, -160%);
 z-index:5;
 }
 #logo .eye-stem {
-width:30px;
-height:87px;
+width:10px;
+height:30px;
 background-color:black;
 position: absolute;
 top: 50%;
@@ -73,47 +74,47 @@ transform: translateX(-50%);
 z-index:5;
 }
 #logo .b-line1 {
-width:60px;
-height:30px;
+width:20px;
+height:10px;
 background-color:black;
 position: absolute;
-top: 150px;
-left: 70px;
+top: 50px;
+left: 23px;
 z-index:6;
 }
 #logo .b-line2 {
-width:30px;
-height:60px;
+width:10px;
+height:20px;
 background-color:black;
 position: absolute;
-top: 180px;
-left: 100px;
+top: 60px;
+left: 33px;
 z-index:7;
 }
 #logo .line1 {
-width:10px;
-height:150px;
-background-color:white;
+width:3px;
+height:50px;
+background-color:gold;
 position: absolute;
-top: 130px;
-left: 125px;
+top: 43px;
+left: 41px;
 z-index:8;
 }
 #logo .line2 {
-width:10px;
-height:150px;
-background-color:white;
+width:3px;
+height:50px;
+background-color:gold;
 position: absolute;
-top: 130px;
-left: 165px;
+top: 43px;
+left: 55px;
 z-index:9;
 }
 #logo .mid-line {
-width:10px;
-height:50px;
-background-color:white;
+width:3px;
+height:17px;
+background-color:gold;
 position: absolute;
-top: 30px;
+top: 10px;
 left: 50%;
 transform: translateX(-50%);
 z-index:5;
